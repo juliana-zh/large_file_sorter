@@ -31,12 +31,13 @@ private:
     void PutToFile(const std::vector<std::string>& buffer);
     void MergeWrite();
     int CountCurByteSize(const std::vector<std::string>& v);
+    void DeleteSorterTmpFiles();
 private:
     std::string InFileName;
     int BufferLimitBytes = 10 * 1024 * 1024;
     std::string OutFileName;
     int MaxCounterFileCreated = 0;
-    const std::string TMPDIR = "tmpdir_sorter";    
+    const std::string TMP_SORTER_DIR = "tmpdir_sorter";
     std::priority_queue<Elem> LineToIfs;
     int NumLines = 0;
 };

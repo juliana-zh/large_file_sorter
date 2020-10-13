@@ -12,6 +12,7 @@ void Sorter::Run() {
     ReadDivideSort();
     FillPriorityQueue();
     MergeWrite();
+    DeleteSorterTmpFiles();
 }
 
 void Sorter::ReadDivideSort() {
@@ -48,8 +49,8 @@ void Sorter::ReadDivideSort() {
 
 void Sorter::PutToFile(const std::vector<std::string>& buffer) {    
     std::filesystem::path workdir = std::filesystem::current_path();
-    std::filesystem::create_directory(TMPDIR);
-    std::filesystem::path filename = workdir / TMPDIR / std::to_string(MaxCounterFileCreated);     
+    std::filesystem::create_directory(TMP_SORTER_DIR);
+    std::filesystem::path filename = workdir / TMP_SORTER_DIR / std::to_string(MaxCounterFileCreated);
     std::ofstream ofs(filename);  
     if (!ofs.is_open()) {
         throw std::runtime_error("Failed to open file: " + std::string(filename));
@@ -64,10 +65,10 @@ void Sorter::PutToFile(const std::vector<std::string>& buffer) {
 }
 
 void Sorter::FillPriorityQueue() {    
-    std::filesystem::path tmpdir = std::filesystem::current_path() / TMPDIR;
+    std::filesystem::path tmpSorterDir = std::filesystem::current_path() / TMP_SORTER_DIR;
     for (int i = 0; i < MaxCounterFileCreated; ++i) {
         Elem el;
-        std::filesystem::path filename = tmpdir / std::to_string(i); 
+        std::filesystem::path filename = tmpSorterDir / std::to_string(i);
         el.ifs = std::make_shared<std::ifstream>(filename);
         if (!el.ifs->is_open()) {
             throw std::runtime_error("Failed to open file: " + std::string(filename));
@@ -110,6 +111,11 @@ int Sorter::CountCurByteSize(const std::vector<std::string>& v) {
         size += v[i].length();
     }
     return size;
+}
+
+void Sorter::DeleteSorterTmpFiles() {
+    std::filesystem::path tmpSorterDir = std::filesystem::current_path() / TMP_SORTER_DIR;
+    std::filesystem::remove_all(tmpSorterDir);
 }
 
 }

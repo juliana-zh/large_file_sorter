@@ -6,6 +6,7 @@
 int main(int argc, char **argv) {
     if (argc != 4) {
         std::cerr << "Failed. Wrong num of params. Example: ./sort <input_file> <limit_buf_bytes> <output_file>" << std::endl;
+        return 1;
     }
 
     int limitBufBytes = 0;
