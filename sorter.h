@@ -17,31 +17,31 @@ struct Elem {
 
 class Sorter {
 public:
-    Sorter (const std::string& inFileName, int bufferLimitBytes, const std::string& outFileName) 
+    Sorter (const std::string& inFileName, int bufferLimitBytes, const std::string& outFileName)
         : InFileName(inFileName)
         , BufferLimitBytes(bufferLimitBytes)
         , OutFileName(outFileName)
+        , TmpSorterDir(GenerateName())
         {}
 
     void Run();
 
 private:
-    void ReadDivideSort();    
+    void ReadDivideSort();
     void FillPriorityQueue();
     void PutToFile(const std::vector<std::string>& buffer);
     void MergeWrite();
     int CountCurByteSize(const std::vector<std::string>& v);
     void DeleteSorterTmpFiles();
+    std::string GenerateName();
 private:
     std::string InFileName;
     int BufferLimitBytes = 10 * 1024 * 1024;
     std::string OutFileName;
     int MaxCounterFileCreated = 0;
-    const std::string TMP_SORTER_DIR = "tmpdir_sorter";
+    std::string TmpSorterDir;
     std::priority_queue<Elem> LineToIfs;
     int NumLines = 0;
 };
-
-
 
 }

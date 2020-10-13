@@ -3,12 +3,13 @@
 #include <filesystem>
 #include <algorithm>
 #include <memory>
+#include <chrono>
 #include "sorter.h"
 
 namespace SRT {
 
 
-void Sorter::Run() { 
+void Sorter::Run() {
     ReadDivideSort();
     FillPriorityQueue();
     MergeWrite();
@@ -21,60 +22,60 @@ void Sorter::ReadDivideSort() {
         throw std::runtime_error("Failed to open file: " + InFileName);
     }
 
-    std::string line;    
+    std::string line;
     std::vector<std::string> buffer;
-    buffer.reserve(1000); 
+    buffer.reserve(1000);
     int curSizeBytes = CountCurByteSize(buffer);
 
-    while (!ifs.eof()) { 
-        getline(ifs, line);      
-        ++NumLines;                
-        buffer.push_back(line); 
+    while (!ifs.eof()) {
+        getline(ifs, line);
+        ++NumLines;
+        buffer.push_back(line);
         curSizeBytes += sizeof(std::string);
         curSizeBytes += line.size();
         if (curSizeBytes >= BufferLimitBytes) {
             std::sort(buffer.begin(), buffer.end());
             PutToFile(buffer);
-            ++MaxCounterFileCreated;            
+            ++MaxCounterFileCreated;
             buffer.clear();
             curSizeBytes = CountCurByteSize(buffer);
         }
     }
     if (!buffer.empty()) {
         std::sort(buffer.begin(), buffer.end());
-        PutToFile(buffer); 
-        ++MaxCounterFileCreated;       
+        PutToFile(buffer);
+        ++MaxCounterFileCreated;
     }
 }
 
-void Sorter::PutToFile(const std::vector<std::string>& buffer) {    
+void Sorter::PutToFile(const std::vector<std::string>& buffer) {
     std::filesystem::path workdir = std::filesystem::current_path();
-    std::filesystem::create_directory(TMP_SORTER_DIR);
-    std::filesystem::path filename = workdir / TMP_SORTER_DIR / std::to_string(MaxCounterFileCreated);
-    std::ofstream ofs(filename);  
+    std::filesystem::create_directory(TmpSorterDir);
+    std::filesystem::path filename = workdir / TmpSorterDir / std::to_string(MaxCounterFileCreated);
+    std::ofstream ofs(filename);
     if (!ofs.is_open()) {
         throw std::runtime_error("Failed to open file: " + std::string(filename));
-    }  
+    }
     if (buffer.empty()) {
         return;
     }
     for (int i = 0; i < (int)buffer.size() - 1; ++i) {
-        ofs << buffer[i] << std::endl;
+        ofs << buffer[i] << "\n";
     }
     ofs << buffer.back();
 }
 
-void Sorter::FillPriorityQueue() {    
-    std::filesystem::path tmpSorterDir = std::filesystem::current_path() / TMP_SORTER_DIR;
+void Sorter::FillPriorityQueue() {
+    std::filesystem::path dir = std::filesystem::current_path() / TmpSorterDir;
     for (int i = 0; i < MaxCounterFileCreated; ++i) {
         Elem el;
-        std::filesystem::path filename = tmpSorterDir / std::to_string(i);
+        std::filesystem::path filename = dir / std::to_string(i);
         el.ifs = std::make_shared<std::ifstream>(filename);
         if (!el.ifs->is_open()) {
             throw std::runtime_error("Failed to open file: " + std::string(filename));
-        }        
-        getline(*(el.ifs), el.line);   
-        LineToIfs.push(el);        
+        }
+        getline(*(el.ifs), el.line);
+        LineToIfs.push(el);
     }
 }
 
@@ -85,17 +86,17 @@ void Sorter::MergeWrite() {
     }
     while (!LineToIfs.empty()) {
         Elem el = LineToIfs.top();
-        --NumLines;        
-        ofs << el.line;        
+        --NumLines;
+        ofs << el.line;
         if (NumLines != 0) {
             ofs << "\n";
-        }  
+        }
 
         if (el.ifs->eof()) {
             LineToIfs.pop();
             continue;
         }
-  
+
         Elem newEl;
         newEl.ifs = el.ifs;
         getline(*(newEl.ifs), newEl.line);
@@ -114,8 +115,13 @@ int Sorter::CountCurByteSize(const std::vector<std::string>& v) {
 }
 
 void Sorter::DeleteSorterTmpFiles() {
-    std::filesystem::path tmpSorterDir = std::filesystem::current_path() / TMP_SORTER_DIR;
-    std::filesystem::remove_all(tmpSorterDir);
+    std::filesystem::path pth = std::filesystem::current_path() / TmpSorterDir;
+    std::filesystem::remove_all(pth);
+}
+
+std::string Sorter::GenerateName() {
+    std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch());
+    return ".tmp_sorter_dir_" + std::to_string(ms.count());
 }
 
 }
