@@ -8,8 +8,8 @@
 namespace SRT {
 
 struct Elem {
-	std::string line;
-	std::shared_ptr<std::ifstream> ifs;
+    std::string line;
+    std::shared_ptr<std::ifstream> ifs;
     bool operator< (const Elem& b) const {
         return line > b.line;
     }
@@ -23,7 +23,7 @@ public:
         , OutFileName(outFileName)
         {}
 
-	void Run();
+    void Run();
 
 private:
     void ReadDivideSort();    

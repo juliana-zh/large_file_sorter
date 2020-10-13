@@ -24,7 +24,7 @@ void Sorter::ReadDivideSort() {
     std::vector<std::string> buffer;
     buffer.reserve(1000); 
     int curSizeBytes = CountCurByteSize(buffer);
-    std::cout << "curSizeBytes: " << curSizeBytes << std::endl;       
+
     while (!ifs.eof()) { 
         getline(ifs, line);      
         ++NumLines;                
@@ -35,10 +35,10 @@ void Sorter::ReadDivideSort() {
             std::sort(buffer.begin(), buffer.end());
             PutToFile(buffer);
             ++MaxCounterFileCreated;            
-            buffer.clear();     
+            buffer.clear();
             curSizeBytes = CountCurByteSize(buffer);
-        }					
-	}
+        }
+    }
     if (!buffer.empty()) {
         std::sort(buffer.begin(), buffer.end());
         PutToFile(buffer); 
