@@ -22,21 +22,25 @@ void Sorter::ReadDivideSort() {
 
     std::string line;    
     std::vector<std::string> buffer;
+    buffer.reserve(1000); 
     int curSizeBytes = CountCurByteSize(buffer);
-    std::cout << "curSizeBytes: " << curSizeBytes << std::endl;
-    buffer.reserve(25000);    
+    std::cout << "curSizeBytes: " << curSizeBytes << std::endl;       
     while (!ifs.eof()) { 
-        getline(ifs, line);                      
+        getline(ifs, line);      
+        ++NumLines;                
         buffer.push_back(line); 
-        curSizeBytes = CountCurByteSize(buffer);
+        curSizeBytes += sizeof(std::string);
+        curSizeBytes += line.size();
         if (curSizeBytes >= BufferLimitBytes) {
             std::sort(buffer.begin(), buffer.end());
             PutToFile(buffer);
             ++MaxCounterFileCreated;            
-            buffer.clear();            
+            buffer.clear();     
+            curSizeBytes = CountCurByteSize(buffer);
         }					
 	}
     if (!buffer.empty()) {
+        std::sort(buffer.begin(), buffer.end());
         PutToFile(buffer); 
         ++MaxCounterFileCreated;       
     }
@@ -80,10 +84,9 @@ void Sorter::MergeWrite() {
     }
     while (!LineToIfs.empty()) {
         Elem el = LineToIfs.top();
-        std::cout << "|" << el.line << "|" << std::endl;
-        ofs << el.line;
-        std::cout << "size: " << LineToIfs.size() << std::endl;
-        if (LineToIfs.size() != 1) {
+        --NumLines;        
+        ofs << el.line;        
+        if (NumLines != 0) {
             ofs << "\n";
         }  
 
@@ -100,9 +103,9 @@ void Sorter::MergeWrite() {
     }
 }
 
-void Sorter::CountCurByteSize(const std::vector<std::string>& v) {
+int Sorter::CountCurByteSize(const std::vector<std::string>& v) {
     int size = 0;
-    size += sizeof(std::vector<std::string>) + sizeof(std::string) * vector::size();
+    size += sizeof(std::vector<std::string>) + sizeof(std::string) * v.size();
     for(int i = 0; i < (int)v.size(); ++i) {
         size += v[i].length();
     }
